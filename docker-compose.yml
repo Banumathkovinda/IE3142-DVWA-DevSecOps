@@ -1,0 +1,62 @@
+services:
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: dvwa-devsecops-web:local
+    container_name: dvwa-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-4280}:80"
+    environment:
+      - DBMS=MySQL
+      - DB_SERVER=${DB_SERVER:-db}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-dvwa}
+      - DB_USER=${DB_USER:-dvwa}
+      - DB_PASSWORD=${DB_PASSWORD:-dvwa_user_secure_pass_change_me}
+      - DEFAULT_SECURITY_LEVEL=${DEFAULT_SECURITY_LEVEL:-low}
+      - DEFAULT_LOCALE=${DEFAULT_LOCALE:-en}
+      - RECAPTCHA_PUBLIC_KEY=${RECAPTCHA_PUBLIC_KEY:-}
+      - RECAPTCHA_PRIVATE_KEY=${RECAPTCHA_PRIVATE_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dvwa-internal
+    volumes:
+      - ./app:/var/www/html
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/login.php || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
+  db:
+    image: mariadb:10.11
+    container_name: dvwa-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-dvwa_root_secure_pass_change_me}
+      - MYSQL_DATABASE=${DB_DATABASE:-dvwa}
+      - MYSQL_USER=${DB_USER:-dvwa}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-dvwa_user_secure_pass_change_me}
+    networks:
+      - dvwa-internal
+    volumes:
+      - dvwa-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD || mysqladmin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  dvwa-internal:
+    driver: bridge
+
+volumes:
+  dvwa-db-data:
+    driver: local

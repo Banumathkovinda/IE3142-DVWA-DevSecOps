@@ -1,0 +1,31 @@
+# Environment files and credentials
+.env
+.env.local
+.env.*.local
+
+# DVWA local configuration (generated from config.inc.php.dist)
+app/config/config.inc.php
+app/config/config.inc.php.bak
+
+# Composer vendor directories (built in container or during CI)
+app/vulnerabilities/api/vendor/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Test and coverage artifacts
+tests/__pycache__/
+*.pyc
+
+# Local runtime logs and cookies
+*.log
+cookies.txt
+docker-data/
