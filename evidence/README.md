@@ -27,7 +27,6 @@ This checklist tracks all required submission artifacts, logs, and screenshots a
 | **17** | Security Gate Failure Demo | `evidence/15-pipeline-failed/` | Deliberate flaw demonstration showing pipeline failing on exit code 1 | **Complete** |
 | **18** | Security Gate Success Demo | `evidence/16-pipeline-success/` | Clean pipeline execution overview across all 5 automated stages | **Complete** |
 | **19** | Secrets Management | `docs/secrets-management.md` | Policy on `.env.example`, runtime env injection, and rotation protocol | **Complete** |
-| **20** | Optional DAST | `security/zap/` | OWASP ZAP baseline scan instructions and ethical boundaries | **Complete** |
 
 ---
 
