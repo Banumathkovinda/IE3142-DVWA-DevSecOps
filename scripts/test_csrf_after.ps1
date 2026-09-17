@@ -15,10 +15,14 @@ Write-Host "=========================================================="
 Write-Host "1. Retesting Identical Pre-Fix Attack Payload (No Token)"
 Write-Host "=========================================================="
 $forgedUri = "http://127.0.0.1:4280/vulnerabilities/csrf/?password_new=hacked123&password_conf=hacked123&Change=Change"
-$resForged = Invoke-WebRequest -Uri $forgedUri -WebSession $session -UseBasicParsing
-if ($resForged.Content -match "ERROR: CSRF token is missing or invalid" -and -not ($resForged.Content -match "Password Changed")) {
+$resForged = Invoke-WebRequest -Uri $forgedUri -WebSession $session -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue
+$indexPage = Invoke-WebRequest -Uri "http://127.0.0.1:4280/index.php" -WebSession $session -UseBasicParsing
+
+$blocked = ($resForged.StatusCode -eq 302) -or ($indexPage.Content -match "CSRF token is incorrect")
+if ($blocked) {
     Write-Host "[+] SUCCESS: Forged request blocked!"
-    Write-Host "    Server Response: <pre>ERROR: CSRF token is missing or invalid. Action blocked.</pre>"
+    Write-Host "    checkToken() intercepted forged request: HTTP 302 Redirect to index.php."
+    Write-Host "    Notification: 'CSRF token is incorrect'"
 } else {
     Write-Host "[-] Forged request was not blocked."
 }
@@ -27,10 +31,11 @@ Write-Host "`n=========================================================="
 Write-Host "2. Testing Forged Request with Fake / Guess Token"
 Write-Host "=========================================================="
 $fakeTokenUri = "http://127.0.0.1:4280/vulnerabilities/csrf/?password_new=hacked123&password_conf=hacked123&user_token=attacker_guessed_token&Change=Change"
-$resFake = Invoke-WebRequest -Uri $fakeTokenUri -WebSession $session -UseBasicParsing
-if ($resFake.Content -match "ERROR: CSRF token is missing or invalid") {
+$resFake = Invoke-WebRequest -Uri $fakeTokenUri -WebSession $session -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue
+
+if ($resFake.StatusCode -eq 302) {
     Write-Host "[+] SUCCESS: Forged token blocked!"
-    Write-Host "    Server Response: <pre>ERROR: CSRF token is missing or invalid. Action blocked.</pre>"
+    Write-Host "    checkToken() rejected mismatched token: HTTP 302 Redirect."
 } else {
     Write-Host "[-] Fake token request was not blocked."
 }

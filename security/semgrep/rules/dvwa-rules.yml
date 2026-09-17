@@ -1,0 +1,29 @@
+rules:
+  - id: dvwa-reflected-xss-unescaped-echo
+    pattern: $HTML .= '<pre>Hello ' . $_GET['name'] . '</pre>';
+    message: "Potential Reflected Cross-Site Scripting (XSS) detected: untrusted $_GET input concatenated into HTML without output encoding."
+    languages: [php]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+      remediation: "Wrap all user-controlled dynamic output in htmlspecialchars($input, ENT_QUOTES | ENT_HTML5, 'UTF-8')."
+
+  - id: dvwa-csrf-missing-token-check
+    patterns:
+      - pattern: |
+          if( isset( $_GET[ 'Change' ] ) ) {
+            ...
+          }
+      - pattern-not: |
+          if( isset( $_GET[ 'Change' ] ) ) {
+            checkToken(...);
+            ...
+          }
+    message: "Potential Cross-Site Request Forgery (CSRF) detected: state-changing password change request does not validate anti-CSRF token."
+    languages: [php]
+    severity: WARNING
+    metadata:
+      cwe: "CWE-352: Cross-Site Request Forgery (CSRF)"
+      owasp: "A01:2021 - Broken Access Control"
+      remediation: "Verify cryptographically strong anti-CSRF token with checkToken() before processing state change."
