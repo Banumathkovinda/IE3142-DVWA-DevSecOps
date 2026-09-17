@@ -1,8 +1,13 @@
 <?php
 
 if( isset( $_GET[ 'Change' ] ) ) {
-	// Security Control 1: Cryptographic Anti-CSRF Token Validation using checkToken()
-	checkToken( $_REQUEST[ 'user_token' ], $_SESSION[ 'session_token' ], 'index.php' );
+	// Security Control 1: Cryptographic Anti-CSRF Token Validation
+	// Safely retrieve token avoiding PHP 8 undefined array key warnings
+	$user_token = array_key_exists( 'user_token', $_REQUEST ) ? $_REQUEST[ 'user_token' ] : '';
+	$session_token = array_key_exists( 'session_token', $_SESSION ) ? $_SESSION[ 'session_token' ] : '';
+
+	// Enforce anti-CSRF token verification
+	checkToken( $user_token, $session_token, 'index.php' );
 
 	// Get input
 	$pass_new  = $_GET[ 'password_new' ];

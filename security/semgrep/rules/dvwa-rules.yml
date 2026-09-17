@@ -17,6 +17,7 @@ rules:
           }
       - pattern-not: |
           if( isset( $_GET[ 'Change' ] ) ) {
+            ...
             checkToken(...);
             ...
           }
