@@ -1,0 +1,114 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, "feature/**", "demo/**" ]
+  pull_request:
+    branches: [ main ]
+
+# Enforce least privilege for the workflow runner
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ============================================================================
+  # 1. Validation & Syntax Integrity
+  # ============================================================================
+  validate-environment:
+    name: "1. Lint & Config Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          echo "Docker compose configuration is valid."
+
+  # ============================================================================
+  # 2. SAST Security Scan (Semgrep)
+  # ============================================================================
+  sast-scan:
+    name: "2. SAST - Semgrep Security Gate"
+    runs-on: ubuntu-latest
+    needs: validate-environment
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Execute Semgrep SAST Scan
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" returntocorp/semgrep semgrep scan \
+            --config "p/php" \
+            --config /src/security/semgrep/rules/dvwa-rules.yml \
+            --error \
+            --severity ERROR \
+            /src/app/vulnerabilities/sqli/source/low.php \
+            /src/app/vulnerabilities/xss_r/source/low.php \
+            /src/app/vulnerabilities/exec/source/low.php \
+            /src/app/vulnerabilities/csrf/source/low.php
+
+  # ============================================================================
+  # 3. Dependency / Software Composition Analysis (SCA)
+  # ============================================================================
+  sca-scan:
+    name: "3. Dependency / SCA Scan - Trivy"
+    runs-on: ubuntu-latest
+    needs: validate-environment
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Filesystem Scan on Composer Dependencies
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "app/vulnerabilities/api"
+          scanners: "vuln"
+          severity: "CRITICAL"
+          exit-code: "1"
+
+  # ============================================================================
+  # 4. Secrets Scanning (Gitleaks)
+  # ============================================================================
+  secrets-scan:
+    name: "4. Secrets Detection - Gitleaks"
+    runs-on: ubuntu-latest
+    needs: validate-environment
+    steps:
+      - name: Checkout Full Git Commit History
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Secret Scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  # ============================================================================
+  # 5. Container Image Build & Image Vulnerability Scan (Trivy)
+  # ============================================================================
+  container-security:
+    name: "5. Container Image Scan - Trivy Gate"
+    runs-on: ubuntu-latest
+    needs: [ sast-scan, sca-scan, secrets-scan ]
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Build DVWA Web Container Image
+        run: |
+          docker build -t dvwa-custom:${{ github.sha }} -f app/Dockerfile app
+
+      - name: Run Trivy Container Image Scan (Actionable Vulnerabilities Gate)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "dvwa-custom:${{ github.sha }}"
+          severity: "CRITICAL"
+          ignore-unfixed: true
+          exit-code: "1"
