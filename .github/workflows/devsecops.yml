@@ -85,10 +85,9 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks Secret Scanner
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/path" zricethezav/gitleaks:latest detect --source="/path" --config="/path/.gitleaks.toml" --verbose --redact
+
 
   # ============================================================================
   # 5. Container Image Build & Image Vulnerability Scan (Trivy)
