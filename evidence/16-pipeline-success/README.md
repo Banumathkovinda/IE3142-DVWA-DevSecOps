@@ -36,7 +36,16 @@ When a pull request or commit is pushed to `main` with all four secure remediati
                        [ ALL CHECKS PASSED ]
 ```
 
-## 4. Manual Screenshot Checklist
-Capture and place the following screenshots in this directory:
-- `gh-actions-success-summary.png`: GitHub Actions run overview showing green checkmarks for all 5 pipeline jobs.
-- `gh-actions-job-details.png`: Detailed logs for the container build and Trivy image scan job passing with code 0.
+## 4. Pipeline Verification Evidence
+
+![All Checks Passed - DevSecOps CI/CD Pipeline](gh-actions-success-summary.png)
+
+- **Verification Status**: ✅ All 5 automated security jobs completed successfully.
+- **Workflow Run**: Commit `1c3bcd8` (`fix(ci): invoke Gitleaks via official container to resolve root commit range scanning`)
+- **Gates Validated**:
+  1. `1. Lint & Config Validation` (5s)
+  2. `2. SAST - Semgrep Security Gate` (20s)
+  3. `3. Dependency / SCA Scan - Trivy` (10s)
+  4. `4. Secrets Detection - Gitleaks` (8s)
+  5. `5. Container Image Scan - Trivy Gate` (1m)
+

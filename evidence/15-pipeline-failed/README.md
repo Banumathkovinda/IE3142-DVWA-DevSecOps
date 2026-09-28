@@ -73,7 +73,11 @@ Removed the dummy key, committed the clean state, and verified `0 leaks found`.
 
 ---
 
-## 4. Manual Screenshot Checklist
-Capture and place the following screenshots in this directory:
-- `gh-actions-failed-summary.png`: GitHub Actions summary page showing the red `X` and failed `sast-scan` or `secrets-scan` job.
-- `gh-actions-failed-logs.png`: Terminal logs of the failed GitHub Actions step showing Semgrep or Gitleaks exiting with code 1.
+## 4. Security Gate Failure Evidence
+
+![Security Gate Failure in GitHub Actions](gh-actions-failed-summary.png)
+
+- **Demonstration**: Active blocking by GitHub Actions DevSecOps security gate.
+- **Observed Behavior**: Downstream container build (`5. Container Image Scan - Trivy Gate`) was immediately blocked and halted from executing.
+- **Post-Remediation Verification**: On the subsequent commit (`1c3bcd8`), the configuration was resolved and all 5 gates turned green (documented in [Evidence 16](file:///c:/Users/ASUS/Desktop/dvwa%20devsecops/evidence/16-pipeline-success)).
+
