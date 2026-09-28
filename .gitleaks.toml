@@ -1,0 +1,23 @@
+# ==============================================================================
+# Gitleaks Configuration (.gitleaks.toml)
+# ==============================================================================
+# Defines scanning rules and explicit, documented allowlists for non-secret
+# educational documentation strings.
+# ==============================================================================
+
+title = "DVWA DevSecOps Gitleaks Policy"
+
+[extend]
+# Inherit standard Gitleaks ruleset
+useDefault = true
+
+[allowlist]
+description = "Allowlist static dummy CSRF tokens in DVWA help documentation"
+paths = [
+    '''app/vulnerabilities/csrf/help/help\.php''',
+    '''evidence/.*''',
+    '''docs/.*'''
+]
+stopwords = [
+    "026d0caed93471b507ed460ebddbd096"
+]
