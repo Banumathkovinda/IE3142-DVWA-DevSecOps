@@ -24,7 +24,13 @@
   ```
 * **Status**: **PASS (0 fixable critical vulnerabilities)**
 
-## 4. Manual Screenshot Checklist
-Capture and place the following screenshots in this directory:
-- `trivy-image-scan-terminal.png`: Terminal output running `trivy image dvwa-devsecops-web:local` displaying the scan summary table.
-- `trivy-clean-packages.png`: Screenshot showing the clean language packages table for Composer dependencies.
+## 4. Container Scan Verification Evidence
+
+### A. Trivy Image Scan Execution & Clean Report Summary
+![Trivy Image Scan Terminal Output](trivy-image-scan-terminal.png)
+
+### B. Trivy Scanner Execution & Database Verification
+![Trivy Scanner Execution](trivy-clean-packages.png)
+
+* **Verification Status**: ✅ 0 critical vulnerabilities detected across 222 OS packages and runtime Composer packages.
+
